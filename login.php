@@ -1,0 +1,53 @@
+<?php
+session_start();
+include 'conexion.php';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $usuario = $_POST['usuario'];
+    $password = $_POST['password'];
+
+    $sql = "SELECT usuario, password_hash, rol FROM [dbo].[pol_Usuarios] WHERE usuario = ?";
+    $params = array($usuario);
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt && $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        if (password_verify($password, $row['password_hash'])) {
+            $_SESSION['usuario'] = $row['usuario'];
+            $_SESSION['rol'] = $row['rol'];
+            header("Location: index.php");
+            exit();
+        } else {
+            $error = "Contraseña incorrecta";
+        }
+    } else {
+        $error = "El usuario no existe";
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - KH Polivalencias</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #8c181a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 300px; text-align: center; }
+        img { width: 100px; margin-bottom: 20px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #b18e3a; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .error { color: red; font-size: 12px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <img src="logo.png" alt="KH Logo">
+        <h3>Acceso al Sistema</h3>
+        <?php if(isset($error)) echo "<p class='error'>$error</p>"; ?>
+        <form method="POST">
+            <input type="text" name="usuario" placeholder="Usuario" required autofocus>
+            <input type="password" name="password" placeholder="Contraseña" required>
+            <button type="submit">ENTRAR</button>
+        </form>
+    </div>
+</body>
+</html>

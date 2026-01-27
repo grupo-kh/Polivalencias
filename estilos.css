@@ -1,0 +1,67 @@
+/* C:\xampp\htdocs\Polivalencias\estilos.css */
+body { 
+    font-family: 'Calibri', sans-serif; 
+    font-size: 16px; /* Calibri 12 */
+    background-color: #f4f4f4; 
+    margin: 0; padding: 20px;
+}
+
+.container { 
+    max-width: 1200px; 
+    margin: auto; 
+    background: white; 
+    border: 2px solid #8c181a;
+}
+
+.form-header { 
+    background-color: #8c181a; 
+    color: white; 
+    padding: 10px 20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+
+.form-header h1 { 
+    font-size: 18.6px; /* Calibri 14pt */
+    text-transform: uppercase; 
+    margin: 0;
+    font-weight: bold;
+}
+
+.selector-box { 
+    background: #f9f9f9; 
+    padding: 20px; 
+    border-bottom: 2px solid #8c181a;
+}
+
+label { font-weight: bold; text-transform: uppercase; color: #8c181a; }
+
+table { width: 100%; border-collapse: collapse; }
+
+th { 
+    background-color: #8c181a; 
+    color: white; 
+    text-transform: uppercase; 
+    padding: 10px;
+    border: 1px solid #fff;
+    font-size: 14px;
+}
+
+td { padding: 10px; border: 1px solid #ddd; }
+
+.btn-nuevo {
+    background-color: #8c181a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-family: 'Calibri';
+}
+
+.badge { padding: 4px 10px; border-radius: 4px; font-weight: bold; color: white; }
+.alto { background-color: #28a745; }
+.medio { background-color: #ffc107; color: black; }
+.bajo { background-color: #fd7e14; }
