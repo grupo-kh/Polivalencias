@@ -5,46 +5,50 @@ include 'conexion.php';
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?php include 'header_meta.php'; ?>
     <title>OPERACIONES - KH</title>
-    <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-<div class="container">
-    <div class="form-header">
-        <h1>MATRIZ DE DEFINICIÓN - OPERACIONES</h1>
-        <img src="logo.png" alt="LOGO" style="height: 40px; background: white; padding: 2px;">
+<div class="header-kh">
+    <div style="display:flex; align-items:center; gap:20px;">
+        <a href="index.html" class="btn btn-secondary">🏠</a>
+        <h2 style="margin:0;">CATÁLOGO DE OPERACIONES</h2>
     </div>
+    <img src="logo.png" style="height:40px; background: white; padding: 2px; border-radius: 4px;">
+</div>
 
-    <div style="padding: 20px;">
-        <table style="width: 100%;">
+<div class="container" style="padding: 20px 15px;">
+    <div class="table-responsive">
+        <table>
             <thead>
                 <tr>
                     <th>SECCIÓN</th>
                     <th>OPERACIÓN / PUESTO</th>
-                    <th>DIFICULTAD</th>
-                    <th>OBSOLETO</th>
+                    <th style="text-align:center;">DIFICULTAD</th>
+                    <th style="text-align:center;">OBSOLETO</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
                 $sql = "SELECT [Seccion], [Operacion], [Dificultad], [Obsoleto] FROM [pol_MatrizDefinicion] ORDER BY [Seccion], [Operacion]";
                 $res = sqlsrv_query($conn, $sql);
-                
+
                 if($res !== false) {
                     while($row = sqlsrv_fetch_array($res, SQLSRV_FETCH_ASSOC)) {
                         echo "<tr>
-                                <td>{$row['Seccion']}</td>
-                                <td><strong>{$row['Operacion']}</strong></td>
-                                <td>{$row['Dificultad']}</td>
-                                <td>" . ($row['Obsoleto'] == 'VERDADERO' ? '⚠️ SÍ' : 'NO') . "</td>
+                                <td>" . limpiar($row['Seccion']) . "</td>
+                                <td><strong>" . limpiar($row['Operacion']) . "</strong></td>
+                                <td style='text-align:center;'>" . $row['Dificultad'] . "</td>
+                                <td style='text-align:center;'>" . ($row['Obsoleto'] == 'VERDADERO' || $row['Obsoleto'] == 1 ? '⚠️ SÍ' : 'NO') . "</td>
                               </tr>";
                     }
                 }
                 ?>
             </tbody>
         </table>
-        <br>
-        <a href="index.php" class="btn-nuevo" style="text-decoration:none;">VOLVER AL MENÚ</a>
+    </div>
+    <div style="margin-top: 20px;">
+        <a href="index.html" class="btn btn-secondary">VOLVER AL MENÚ</a>
     </div>
 </div>
 </body>

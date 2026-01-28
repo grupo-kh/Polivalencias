@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btnGuardarMatriz'])) {
 
 <div class="header-kh">
     <div style="display:flex; align-items:center; gap:20px;">
-        <a href="index.php" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
+        <a href="index.html" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
         <h2 style="margin:0;">DEFINICIÓN DE OPERACIÓN</h2>
     </div>
     <img src="logo.png" style="height:40px; background: white; padding: 2px; border-radius: 4px;">

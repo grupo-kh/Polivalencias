@@ -5,7 +5,7 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 
 // BLOQUEO DE SEGURIDAD: Solo Administradores
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Administrador') {
-    header("Location: index.php");
+    header("Location: index.html");
     exit();
 }
 
@@ -40,7 +40,7 @@ $res = sqlsrv_query($conn, "SELECT id, usuario, rol FROM [dbo].[pol_Usuarios]");
 <body>
 <div class="header-kh">
     <div style="display:flex; align-items:center; gap:20px;">
-        <a href="index.php" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
+        <a href="index.html" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
         <h2 style="margin:0;">GESTIÓN DE USUARIOS</h2>
     </div>
     <img src="logo.png" style="height:40px; background: white; padding: 2px; border-radius: 4px;">

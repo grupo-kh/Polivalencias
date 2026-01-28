@@ -63,7 +63,7 @@ if ($res) {
 
 <div class="header-kh no-print">
     <div style="display:flex; align-items:center; gap:15px;">
-        <a href="index.php" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
+        <a href="index.html" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
         <h2 style="margin:0;">Catálogo de Operaciones</h2>
     </div>
     <div style="display: flex; gap: 10px;">
