@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (password_verify($password, $row['password_hash'])) {
             $_SESSION['usuario'] = $row['usuario'];
             $_SESSION['rol'] = $row['rol'];
-            header("Location: index.php");
+            header("Location: index.html");
             exit();
         } else {
             $error = "Contraseña incorrecta";
