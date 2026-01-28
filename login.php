@@ -27,8 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php include 'header_meta.php'; ?>
     <title>Login - KH Polivalencias</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #8c181a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }

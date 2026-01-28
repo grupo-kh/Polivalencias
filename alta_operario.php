@@ -37,7 +37,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
     <?php include 'header_meta.php'; ?>
     <title>KH - Nuevo Operario</title>
     <style>

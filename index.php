@@ -17,7 +17,6 @@ function tienePermiso($rolesPermitidos) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
     <?php include 'header_meta.php'; ?>
 
     <title>KH - Sistema de Gestión de Polivalencias</title>
@@ -184,7 +183,7 @@ function tienePermiso($rolesPermitidos) {
             <a href="gestion_usuarios.php" class="btn-usuarios">👥 GESTIÓN USUARIOS</a>
         <?php endif; ?>
 
-        <div style="font-size: 12px;">👤 <b><?php echo htmlspecialchars($_SESSION['usuario']); ?></b></div>
+        <div style="font-size: 12px;">👤 <b><?php echo limpiar($_SESSION['usuario']); ?></b></div>
         <a href="logout.php" class="logout-link">Cerrar Sesión (<?php echo $_SESSION['rol']; ?>)</a>
     </div>
 </div>

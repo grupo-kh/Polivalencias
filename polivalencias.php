@@ -2,14 +2,6 @@
 include 'conexion.php';
 error_reporting(E_ALL & ~E_DEPRECATED);
 
-function limpiar($texto) {
-    if ($texto === null) return "";
-    $codificacion = mb_detect_encoding($texto, 'UTF-8, ISO-8859-1', true);
-    if ($codificacion === 'ISO-8859-1') {
-        $texto = mb_convert_encoding($texto, 'UTF-8', 'ISO-8859-1');
-    }
-    return htmlspecialchars($texto, ENT_QUOTES, 'UTF-8');
-}
 
 $operarioSeleccionado = isset($_GET['operario']) ? $_GET['operario'] : '';
 
@@ -36,7 +28,6 @@ if (isset($_POST['btnActualizar'])) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
     <?php include 'header_meta.php'; ?>
     <title>KH - Polivalencias</title>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">

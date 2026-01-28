@@ -31,7 +31,6 @@ $res = sqlsrv_query($conn, $query, $params);
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
     <?php include 'header_meta.php'; ?>
     <title>KH - Gestión de Operarios</title>
     <style>
@@ -76,8 +75,8 @@ $res = sqlsrv_query($conn, $query, $params);
                 <?php while($row = sqlsrv_fetch_array($res, SQLSRV_FETCH_ASSOC)): ?>
                 <tr>
                     <td><?php echo $row['Operario']; ?></td>
-                    <td><strong><?php echo strtoupper(htmlspecialchars($row['NombreOperario'])); ?></strong></td>
-                    <td><?php echo htmlspecialchars($row['Cargo1'] ?? ''); ?></td>
+                <td><strong><?php echo strtoupper(limpiar($row['NombreOperario'])); ?></strong></td>
+                <td><?php echo limpiar($row['Cargo1'] ?? ''); ?></td>
                     <td style="text-align:center; min-width: 180px;">
                         <a href="polivalencias.php?operario=<?php echo urlencode(trim($row['NombreOperario'])); ?>" class="btn-action bg-poly">🎯 MATRIZ</a>
 

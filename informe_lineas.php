@@ -2,7 +2,6 @@
 include 'conexion.php';
 error_reporting(E_ALL & ~E_DEPRECATED);
 
-function limpiar($t) { return ($t === null) ? "" : htmlspecialchars(trim($t), ENT_QUOTES, 'UTF-8'); }
 
 // Capturamos el filtro si existe
 $filtroPuesto = $_GET['f_puesto'] ?? '';
@@ -57,7 +56,6 @@ function obtenerColorNivel($pct) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
     <?php include 'header_meta.php'; ?>
     <title>KH - Informe de Polivalencias</title>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
