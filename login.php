@@ -27,15 +27,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    <?php include 'header_meta.php'; ?>
     <title>Login - KH Polivalencias</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #8c181a; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 300px; text-align: center; }
+        body { font-family: 'Segoe UI', sans-serif; background: #8c181a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 350px; text-align: center; }
         img { width: 100px; margin-bottom: 20px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #b18e3a; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .error { color: red; font-size: 12px; margin-bottom: 10px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #b18e3a; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; text-transform: uppercase; transition: background 0.3s; }
+        button:hover { background: #967931; }
+        .error { color: #8c181a; font-size: 14px; margin-bottom: 15px; font-weight: bold; }
+        h3 { color: #6e6d6b; margin-bottom: 20px; }
     </style>
 </head>
 <body>

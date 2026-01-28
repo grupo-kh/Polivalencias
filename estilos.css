@@ -1,67 +1,148 @@
-/* C:\xampp\htdocs\Polivalencias\estilos.css */
-body { 
-    font-family: 'Calibri', sans-serif; 
-    font-size: 16px; /* Calibri 12 */
-    background-color: #f4f4f4; 
-    margin: 0; padding: 20px;
+/* Global Styles */
+* {
+    box-sizing: border-box;
 }
 
-.container { 
-    max-width: 1200px; 
-    margin: auto; 
-    background: white; 
-    border: 2px solid #8c181a;
-}
-
-.form-header { 
-    background-color: #8c181a; 
-    color: white; 
-    padding: 10px 20px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-}
-
-.form-header h1 { 
-    font-size: 18.6px; /* Calibri 14pt */
-    text-transform: uppercase; 
+body {
+    font-family: 'Segoe UI', 'Calibri', sans-serif;
+    font-size: 16px;
+    background-color: #f4f4f4;
     margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Typography */
+h1, h2, h3 {
+    color: #8c181a;
+}
+
+/* Header */
+.header-kh {
+    background: #8c181a;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header-kh h1, .header-kh h2 {
+    color: white;
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+/* Forms */
+label {
     font-weight: bold;
+    text-transform: uppercase;
+    color: #8c181a;
+    display: block;
+    margin-bottom: 5px;
 }
 
-.selector-box { 
-    background: #f9f9f9; 
-    padding: 20px; 
-    border-bottom: 2px solid #8c181a;
-}
-
-label { font-weight: bold; text-transform: uppercase; color: #8c181a; }
-
-table { width: 100%; border-collapse: collapse; }
-
-th { 
-    background-color: #8c181a; 
-    color: white; 
-    text-transform: uppercase; 
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select {
+    width: 100%;
     padding: 10px;
-    border: 1px solid #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
     font-size: 14px;
 }
 
-td { padding: 10px; border: 1px solid #ddd; }
+.btn-primary { background-color: #8c181a; color: white; }
+.btn-secondary { background-color: #6e6d6b; color: white; }
+.btn-accent { background-color: #b18e3a; color: white; }
 
-.btn-nuevo {
-    background-color: #8c181a;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-family: 'Calibri';
+/* Tables */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
 }
 
-.badge { padding: 4px 10px; border-radius: 4px; font-weight: bold; color: white; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th {
+    background-color: #8c181a;
+    color: white;
+    text-transform: uppercase;
+    padding: 12px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    text-align: left;
+}
+
+td {
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+/* Badges */
+.badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: white;
+    font-size: 12px;
+    display: inline-block;
+}
 .alto { background-color: #28a745; }
 .medio { background-color: #ffc107; color: black; }
-.bajo { background-color: #fd7e14; }
+.bajo { background-color: #dc3545; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header-kh {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch !important;
+    }
+
+    .search-box {
+        width: 100% !important;
+    }
+
+    .grid-menu {
+        grid-template-columns: 1fr !important;
+    }
+
+    .card {
+        max-width: 100% !important;
+    }
+}
