@@ -19,9 +19,9 @@ function tienePermiso($rolesPermitidos) {
 <head>
     <meta charset="UTF-8">
     <?php include 'header_meta.php'; ?>
-    
+
     <title>KH - Sistema de Gestión de Polivalencias</title>
-    
+
     <style>
         :root {
             --kh-granate: #8c181a;
@@ -32,9 +32,6 @@ function tienePermiso($rolesPermitidos) {
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--kh-fondo);
-            margin: 0;
             padding-bottom: 50px;
         }
 
@@ -42,11 +39,23 @@ function tienePermiso($rolesPermitidos) {
             width: 100%;
             background-color: var(--kh-granate);
             color: white;
-            padding: 25px 0;
+            padding: 25px 20px;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             margin-bottom: 30px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .header {
+                flex-direction: row;
+                justify-content: space-between;
+                text-align: left;
+                padding: 25px 40px;
+            }
         }
 
         .header img {
@@ -57,13 +66,21 @@ function tienePermiso($rolesPermitidos) {
         }
 
         .user-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
+            align-items: center;
             gap: 5px;
+            margin-top: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .user-panel {
+                position: absolute;
+                top: 20px;
+                right: 40px;
+                align-items: flex-end;
+                margin-top: 0;
+            }
         }
 
         .btn-usuarios {
@@ -81,12 +98,6 @@ function tienePermiso($rolesPermitidos) {
             color: #ffcccc;
             font-size: 11px;
             text-decoration: none;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
         }
 
         .section-title {
@@ -163,14 +174,16 @@ function tienePermiso($rolesPermitidos) {
 <body>
 
 <div class="header">
-    <img src="logo.png" alt="KH Logo">
-    <h1 style="margin: 15px 0 0 0; letter-spacing: 2px; font-size: 1.6rem;">SISTEMA DE GESTIÓN DE POLIVALENCIAS</h1>
-    
+    <div style="display: flex; align-items: center; gap: 20px; flex-direction: inherit;">
+        <img src="logo.png" alt="KH Logo">
+        <h1 style="margin: 0; letter-spacing: 2px; font-size: 1.6rem;">SISTEMA DE GESTIÓN DE POLIVALENCIAS</h1>
+    </div>
+
     <div class="user-panel">
         <?php if(tienePermiso(['Administrador'])): ?>
             <a href="gestion_usuarios.php" class="btn-usuarios">👥 GESTIÓN USUARIOS</a>
         <?php endif; ?>
-        
+
         <div style="font-size: 12px;">👤 <b><?php echo htmlspecialchars($_SESSION['usuario']); ?></b></div>
         <a href="logout.php" class="logout-link">Cerrar Sesión (<?php echo $_SESSION['rol']; ?>)</a>
     </div>

@@ -16,13 +16,13 @@ $mensaje = "";
 // 2. PROCESAR EL GUARDADO
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Tomamos el ID del campo oculto o del cálculo inicial
-    $id      = $_POST['id_generado']; 
+    $id      = $_POST['id_generado'];
     $nombre  = $_POST['nombre'];
     $cargo   = $_POST['cargo'] ?? '';
 
     $sql = "INSERT INTO [dbo].[pol_Operarios] ([Operario], [NombreOperario], [Cargo1]) VALUES (?, ?, ?)";
     $params = array($id, $nombre, $cargo);
-    
+
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if($stmt) {
@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     } else {
         $errors = sqlsrv_errors();
-        $mensaje = "<div style='color:red;'>Error al guardar: " . $errors[0]['message'] . "</div>";
+        $mensaje = "<div style='color:red; margin-bottom: 15px;'>Error al guardar: " . $errors[0]['message'] . "</div>";
     }
 }
 ?>
@@ -38,36 +38,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?php include 'header_meta.php'; ?>
     <title>KH - Nuevo Operario</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; padding: 40px; color: #6e6d6b; }
-        .card { background: white; max-width: 450px; margin: auto; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 6px solid #8c181a; }
-        h2 { color: #8c181a; margin-top: 0; }
-        label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; }
-        input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; background: #fff; }
+        body { padding: 40px 15px; }
+        .card-form { background: white; max-width: 500px; margin: auto; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 6px solid #8c181a; }
+        h2 { color: #8c181a; margin-top: 0; text-align: center; }
         input[readonly] { background: #eee; cursor: not-allowed; font-weight: bold; color: #8c181a; }
-        .btn-save { background: #8c181a; color: white; border: none; padding: 15px; width: 100%; margin-top: 25px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .btn-save { background: #8c181a; color: white; border: none; padding: 15px; width: 100%; margin-top: 25px; cursor: pointer; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        @media (max-width: 480px) {
+            .card-form { padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>NUEVO OPERARIO</h2>
-    <?php echo $mensaje; ?>
-    
-    <form method="POST">
-        <label>Número de Operario (Asignado automáticamente):</label>
-        <input type="text" name="id_generado" value="<?php echo $proximoID; ?>" readonly>
-        
-        <label>Apellidos, Nombre:</label>
-        <input type="text" name="nombre" placeholder="Ej: PÉREZ GARCÍA, JUAN" required autofocus>
-        
-        <label>Cargo / Sección:</label>
-        <input type="text" name="cargo" placeholder="Ej: Montaje / Línea 1">
-        
-        <button type="submit" class="btn-save">DAR DE ALTA</button>
-        <a href="gestion_operarios.php" style="display:block; text-align:center; margin-top:15px; color:#999; text-decoration:none; font-size:12px;">← Cancelar y volver</a>
-    </form>
+<div class="container">
+    <div class="card-form">
+        <h2>NUEVO OPERARIO</h2>
+        <?php echo $mensaje; ?>
+
+        <form method="POST">
+            <div style="margin-bottom: 15px;">
+                <label>Número de Operario (Automático):</label>
+                <input type="text" name="id_generado" value="<?php echo $proximoID; ?>" readonly>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>Apellidos, Nombre:</label>
+                <input type="text" name="nombre" placeholder="Ej: PÉREZ GARCÍA, JUAN" required autofocus>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label>Cargo / Sección:</label>
+                <input type="text" name="cargo" placeholder="Ej: Montaje / Línea 1">
+            </div>
+
+            <button type="submit" class="btn-save">DAR DE ALTA</button>
+            <a href="gestion_operarios.php" style="display:block; text-align:center; margin-top:15px; color:#999; text-decoration:none; font-size:14px; font-weight: bold;">← Cancelar y volver</a>
+        </form>
+    </div>
 </div>
 
 </body>
