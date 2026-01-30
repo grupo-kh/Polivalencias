@@ -34,9 +34,9 @@ $c_hor_op  = detectarColumna($conn, $t_hor, ['Operario', 'Nombre']);
 $c_hor_pt  = detectarColumna($conn, $t_hor, ['Puesto', 'Operacion']);
 $c_hor_h   = detectarColumna($conn, $t_hor, ['Horas', 'Tiempo']);
 $c_ref_pt  = detectarColumna($conn, $t_ref, ['Operacion', 'Puesto']);
-$c_ref_req = detectarColumna($conn, $t_ref, ['Requerida', 'Objetivo']);
+$c_ref_req = detectarColumna($conn, $t_ref, ['HorasRequeridasFormacion', 'Requerida', 'Objetivo', 'HorasFormacion']);
 $c_ope_nom = detectarColumna($conn, $t_ope, ['Nombre', 'Operario']);
-$c_ope_baj = detectarColumna($conn, $t_ope, ['Baja', 'Activo']);
+$c_ope_baj = detectarColumna($conn, $t_ope, ['FechaBaja', 'Baja', 'Activo']);
 
 // Nueva tabla para asegurar que mostramos polivalencias asignadas
 $t_rel = "[dbo].[pol_Relacion_Operarios_Puestos]";
@@ -48,24 +48,24 @@ $col_h_hor = $c_hor_h ?: "0";
 $col_h_seg = $c_seg_h ?: "0";
 
 $sub_horas = "(
-    ISNULL((SELECT SUM(ISNULL(h.$col_h_hor, 0)) FROM $t_hor h WHERE h.$c_hor_op = base.Operario AND h.$c_hor_pt = base.Puesto), 0) +
-    ISNULL((SELECT SUM(ISNULL(s2.$col_h_seg, 0)) FROM $t_seg s2 WHERE s2.$c_seg_op = base.Operario AND s2.$c_seg_pt = base.Puesto), 0)
+    ISNULL((SELECT SUM(ISNULL(h.$col_h_hor, 0)) FROM $t_hor h WHERE LTRIM(RTRIM(h.$c_hor_op)) = base.Operario AND LTRIM(RTRIM(h.$c_hor_pt)) = base.Puesto), 0) +
+    ISNULL((SELECT SUM(ISNULL(s2.$col_h_seg, 0)) FROM $t_seg s2 WHERE LTRIM(RTRIM(s2.$c_seg_op)) = base.Operario AND LTRIM(RTRIM(s2.$c_seg_pt)) = base.Puesto), 0)
 )";
 
-$sql = "SELECT base.Operario, base.Puesto, r.$c_ref_req AS HorasDefinidas,
+$sql = "SELECT base.Operario, base.Puesto, MAX(ISNULL(r.$c_ref_req, 0)) AS HorasDefinidas,
             ($sub_horas) AS HorasRealizadas
         FROM (
-            SELECT $c_seg_op AS Operario, $c_seg_pt AS Puesto FROM $t_seg WHERE $c_seg_op IS NOT NULL
+            SELECT DISTINCT LTRIM(RTRIM($c_seg_op)) AS Operario, LTRIM(RTRIM($c_seg_pt)) AS Puesto FROM $t_seg WHERE $c_seg_op IS NOT NULL
             UNION
-            SELECT $c_hor_op AS Operario, $c_hor_pt AS Puesto FROM $t_hor WHERE $c_hor_op IS NOT NULL
+            SELECT DISTINCT LTRIM(RTRIM($c_hor_op)) AS Operario, LTRIM(RTRIM($c_hor_pt)) AS Puesto FROM $t_hor WHERE $c_hor_op IS NOT NULL
             UNION
-            SELECT $c_rel_op AS Operario, $c_rel_pt AS Puesto FROM $t_rel WHERE $c_rel_op IS NOT NULL
+            SELECT DISTINCT LTRIM(RTRIM($c_rel_op)) AS Operario, LTRIM(RTRIM($c_rel_pt)) AS Puesto FROM $t_rel WHERE $c_rel_op IS NOT NULL
         ) AS base
-        LEFT JOIN $t_ref r ON base.Puesto = r.$c_ref_pt
-        LEFT JOIN $t_ope m ON base.Operario = m.$c_ope_nom
-        WHERE (m.$c_ope_baj = 'NO' OR m.$c_ope_baj IS NULL OR m.$c_ope_baj = '0')
-        GROUP BY base.Operario, base.Puesto, r.$c_ref_req
-        HAVING (ISNULL(r.$c_ref_req, 0) - ($sub_horas)) > 0";
+        LEFT JOIN $t_ref r ON base.Puesto = LTRIM(RTRIM(r.$c_ref_pt))
+        LEFT JOIN $t_ope m ON base.Operario = LTRIM(RTRIM(m.$c_ope_nom))
+        WHERE (m.$c_ope_baj IS NULL OR CAST(m.$c_ope_baj AS VARCHAR) = '' OR CAST(m.$c_ope_baj AS VARCHAR) = 'NO' OR CAST(m.$c_ope_baj AS VARCHAR) = '0')
+        GROUP BY base.Operario, base.Puesto
+        HAVING (MAX(ISNULL(r.$c_ref_req, 0)) - ($sub_horas)) > 0";
 
 $res = sqlsrv_query($conn, $sql);
 $datos = []; $total_h_pendientes = 0; $total_puestos_abiertos = 0;
