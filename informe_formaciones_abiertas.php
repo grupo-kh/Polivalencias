@@ -1,5 +1,5 @@
 <?php
-include 'conexion.php';
+include_once 'conexion.php';
 error_reporting(E_ALL & ~E_DEPRECATED);
 
 /** * Lógica de detección de columnas (Mantenemos la misma que funcionó)
@@ -29,7 +29,7 @@ $t_ope = "[dbo].[pol_Operarios]";
 
 $c_seg_op  = detectarColumna($conn, $t_seg, ['Operario', 'Nombre']);
 $c_seg_pt  = detectarColumna($conn, $t_seg, ['Puesto', 'Operacion']);
-$c_seg_val = detectarColumna($conn, $t_seg, ['Validac', 'Estado']);
+$c_seg_h   = detectarColumna($conn, $t_seg, ['Horas', 'Sesion', 'Tiempo']);
 $c_hor_op  = detectarColumna($conn, $t_hor, ['Operario', 'Nombre']);
 $c_hor_pt  = detectarColumna($conn, $t_hor, ['Puesto', 'Operacion']);
 $c_hor_h   = detectarColumna($conn, $t_hor, ['Horas', 'Tiempo']);
@@ -38,15 +38,34 @@ $c_ref_req = detectarColumna($conn, $t_ref, ['Requerida', 'Objetivo']);
 $c_ope_nom = detectarColumna($conn, $t_ope, ['Nombre', 'Operario']);
 $c_ope_baj = detectarColumna($conn, $t_ope, ['Baja', 'Activo']);
 
-$sql = "SELECT s.$c_seg_op AS Operario, s.$c_seg_pt AS Puesto, r.$c_ref_req AS HorasDefinidas,
-            (SELECT SUM(ISNULL(h.$c_hor_h, 0)) FROM $t_hor h WHERE h.$c_hor_op = s.$c_seg_op AND h.$c_hor_pt = s.$c_seg_pt) AS HorasRealizadas
-        FROM $t_seg s
-        LEFT JOIN $t_ref r ON s.$c_seg_pt = r.$c_ref_pt
-        LEFT JOIN $t_ope m ON s.$c_seg_op = m.$c_ope_nom
+// Nueva tabla para asegurar que mostramos polivalencias asignadas
+$t_rel = "[dbo].[pol_Relacion_Operarios_Puestos]";
+$c_rel_op = detectarColumna($conn, $t_rel, ['Operario', 'Nombre']);
+$c_rel_pt = detectarColumna($conn, $t_rel, ['Puesto', 'Operacion']);
+
+// Base de horas: Suma de ambas tablas de imputación (con control de nulos en columnas)
+$col_h_hor = $c_hor_h ?: "0";
+$col_h_seg = $c_seg_h ?: "0";
+
+$sub_horas = "(
+    ISNULL((SELECT SUM(ISNULL(h.$col_h_hor, 0)) FROM $t_hor h WHERE h.$c_hor_op = base.Operario AND h.$c_hor_pt = base.Puesto), 0) +
+    ISNULL((SELECT SUM(ISNULL(s2.$col_h_seg, 0)) FROM $t_seg s2 WHERE s2.$c_seg_op = base.Operario AND s2.$c_seg_pt = base.Puesto), 0)
+)";
+
+$sql = "SELECT base.Operario, base.Puesto, r.$c_ref_req AS HorasDefinidas,
+            ($sub_horas) AS HorasRealizadas
+        FROM (
+            SELECT $c_seg_op AS Operario, $c_seg_pt AS Puesto FROM $t_seg WHERE $c_seg_op IS NOT NULL
+            UNION
+            SELECT $c_hor_op AS Operario, $c_hor_pt AS Puesto FROM $t_hor WHERE $c_hor_op IS NOT NULL
+            UNION
+            SELECT $c_rel_op AS Operario, $c_rel_pt AS Puesto FROM $t_rel WHERE $c_rel_op IS NOT NULL
+        ) AS base
+        LEFT JOIN $t_ref r ON base.Puesto = r.$c_ref_pt
+        LEFT JOIN $t_ope m ON base.Operario = m.$c_ope_nom
         WHERE (m.$c_ope_baj = 'NO' OR m.$c_ope_baj IS NULL OR m.$c_ope_baj = '0')
-          AND (s.$c_seg_val IS NULL OR s.$c_seg_val <> 'OK')
-        GROUP BY s.$c_seg_op, s.$c_seg_pt, r.$c_ref_req
-        HAVING (ISNULL(r.$c_ref_req, 0) - ISNULL((SELECT SUM(h.$c_hor_h) FROM $t_hor h WHERE h.$c_hor_op = s.$c_seg_op AND h.$c_hor_pt = s.$c_seg_pt), 0)) > 0";
+        GROUP BY base.Operario, base.Puesto, r.$c_ref_req
+        HAVING (ISNULL(r.$c_ref_req, 0) - ($sub_horas)) > 0";
 
 $res = sqlsrv_query($conn, $sql);
 $datos = []; $total_h_pendientes = 0; $total_puestos_abiertos = 0;

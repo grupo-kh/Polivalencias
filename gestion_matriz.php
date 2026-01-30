@@ -138,6 +138,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btnGuardarMatriz'])) {
     <hr style="margin-top:40px; border:0; border-top: 2px solid #eee;">
 
     <h3 style="color: #8c181a; margin-top: 30px;">OPERACIONES REGISTRADAS</h3>
+    <div style="margin-bottom: 15px;">
+        <input type="text" id="buscadorOperacion" placeholder="🔍 Buscar operación o sección..." style="padding: 10px; width: 100%; max-width: 400px; border: 1px solid #ccc; border-radius: 4px;">
+    </div>
     <div class="table-responsive">
         <table>
             <thead>
@@ -183,6 +186,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btnGuardarMatriz'])) {
     }
     setupSelector('list-necesidad', 'val-necesidad');
     setupSelector('list-dificultad', 'val-dificultad');
+
+    // Filtro de búsqueda para la tabla
+    document.getElementById('buscadorOperacion').addEventListener('keyup', function() {
+        let filtro = this.value.toLowerCase();
+        let filas = document.querySelectorAll('.table-responsive tbody tr');
+        filas.forEach(fila => {
+            let texto = fila.innerText.toLowerCase();
+            fila.style.display = texto.includes(filtro) ? '' : 'none';
+        });
+    });
 
     function nuevaSeccion() {
         let n = prompt("Nombre de la nueva sección:");
