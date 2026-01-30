@@ -34,7 +34,7 @@ if (!$res) { die(print_r(sqlsrv_errors(), true)); }
 
 <div class="header-kh no-print">
     <div style="display:flex; align-items:center; gap:15px;">
-        <a href="index.php" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
+        <a href="index.html" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
         <h2 style="margin:0; font-size: 1.2rem;">SEGUIMIENTO DE HORAS DE FORMACIÓN</h2>
     </div>
     <button onclick="window.print()" class="btn btn-accent">🖨️ IMPRIMIR</button>

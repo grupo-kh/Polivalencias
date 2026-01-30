@@ -88,7 +88,7 @@ function obtenerColorNivel($pct) {
 
 <div class="no-print-header no-print">
     <div style="display:flex; align-items:center; gap:15px;">
-        <a href="index.php" style="color:white; text-decoration:none; font-size:20px;">🏠</a>
+        <a href="index.html" style="color:white; text-decoration:none; font-size:20px;">🏠</a>
         <h2 style="margin:0; color: white; font-size: 1.2rem;">Informe de Polivalencias</h2>
     </div>
     <button onclick="window.print()" class="btn btn-accent">🖨️ Imprimir PDF</button>
