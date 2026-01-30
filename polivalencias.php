@@ -84,7 +84,13 @@ if (isset($_POST['btnActualizar'])) {
                     </div>
                     <div style="flex:1;">
                         <label>%:</label>
-                        <input type="number" name="nuevo_pct" value="75" min="0" max="100" style="padding:11px; border: 2px solid #8c181a; border-radius:4px;">
+                        <select name="nuevo_pct" style="padding:11px; border: 2px solid #8c181a; border-radius:4px; width: 100%;">
+                            <option value="0">0 %</option>
+                            <option value="25">25 %</option>
+                            <option value="50">50 %</option>
+                            <option value="75" selected>75 %</option>
+                            <option value="100">100 %</option>
+                        </select>
                     </div>
                     <button type="submit" name="btnGuardar" class="btn btn-primary" style="margin-bottom: 2px;">AÑADIR</button>
                 </form>
@@ -123,7 +129,11 @@ if (isset($_POST['btnActualizar'])) {
                                 <input type="hidden" name="edit_id" value="<?=$id_fila?>">
                                 <td><?=limpiar($row['Operacion'])?></td>
                                 <td style="text-align:center;">
-                                    <input type="number" name="edit_pct" value="<?=$p?>" min="0" max="100" style="width:70px; padding: 5px;"> %
+                                    <select name="edit_pct" style="width:80px; padding: 5px;">
+                                        <?php foreach([0, 25, 50, 75, 100] as $v): ?>
+                                            <option value="<?=$v?>" <?=($p==$v?'selected':'')?>><?=$v?> %</option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </td>
                                 <td style="text-align:center;">
                                     <button type="submit" name="btnActualizar" class="btn btn-primary" style="padding: 5px 10px; font-size: 11px;">OK</button>

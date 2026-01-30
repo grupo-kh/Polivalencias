@@ -1,158 +1,166 @@
 <?php
-include 'conexion.php';
+include_once 'conexion.php';
 error_reporting(E_ALL & ~E_DEPRECATED);
 
-/** * Lógica de detección de columnas (Mantenemos la misma que funcionó)
+// Usamos la función limpiar() definida en conexion.php
+
+/**
+ * CONSULTA MAESTRA
+ * Combina asignaciones, imputaciones y seguimiento para detectar formaciones pendientes.
  */
-function detectarColumna($conn, $tabla, $opciones) {
-    $tablaLimpia = str_replace(['[dbo].', '[', ']'], '', $tabla);
-    $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$tablaLimpia'";
-    $stmt = sqlsrv_query($conn, $sql);
-    $columnasEncontradas = [];
-    if ($stmt) {
-        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) { $columnasEncontradas[] = $row['COLUMN_NAME']; }
-        foreach ($opciones as $busqueda) {
-            foreach ($columnasEncontradas as $colReal) {
-                $simplificado = strtolower(str_replace([' ', '_', 'á', 'é', 'í', 'ó', 'ú'], '', $colReal));
-                $busquedaSimp = strtolower(str_replace([' ', '_'], '', $busqueda));
-                if (strpos($simplificado, $busquedaSimp) !== false) return "[" . $colReal . "]";
-            }
-        }
-    }
-    return null;
-}
+$sql = "SELECT
+            base.Operario,
+            base.Puesto,
+            MAX(ISNULL(def.HorasRequeridasFormacion, 0)) AS HorasDefinidas,
+            SUM(ISNULL(base.Horas, 0)) AS HorasRealizadas
+        FROM (
+            -- 1. Desde Relación de Operarios (Asignaciones)
+            SELECT LTRIM(RTRIM(NombreOperario)) AS Operario, LTRIM(RTRIM(Operacion)) AS Puesto, 0 AS Horas
+            FROM [dbo].[pol_Relacion_Operarios_Puestos]
 
-$t_seg = "[dbo].[pol_FormacionSeguimiento]";
-$t_hor = "[dbo].[pol_Formacion_Imputacion]";
-$t_ref = "[dbo].[pol_MatrizDefinicion]";
-$t_ope = "[dbo].[pol_Operarios]";
+            UNION ALL
 
-$c_seg_op  = detectarColumna($conn, $t_seg, ['Operario', 'Nombre']);
-$c_seg_pt  = detectarColumna($conn, $t_seg, ['Puesto', 'Operacion']);
-$c_seg_val = detectarColumna($conn, $t_seg, ['Validac', 'Estado']);
-$c_hor_op  = detectarColumna($conn, $t_hor, ['Operario', 'Nombre']);
-$c_hor_pt  = detectarColumna($conn, $t_hor, ['Puesto', 'Operacion']);
-$c_hor_h   = detectarColumna($conn, $t_hor, ['Horas', 'Tiempo']);
-$c_ref_pt  = detectarColumna($conn, $t_ref, ['Operacion', 'Puesto']);
-$c_ref_req = detectarColumna($conn, $t_ref, ['Requerida', 'Objetivo']);
-$c_ope_nom = detectarColumna($conn, $t_ope, ['Nombre', 'Operario']);
-$c_ope_baj = detectarColumna($conn, $t_ope, ['Baja', 'Activo']);
+            -- 2. Desde Imputación de Horas (formacion.php)
+            SELECT LTRIM(RTRIM(NombreOperario)) AS Operario, LTRIM(RTRIM(Operacion)) AS Puesto, ISNULL(Horas, 0) AS Horas
+            FROM [dbo].[pol_Formacion_Imputacion]
 
-$sql = "SELECT s.$c_seg_op AS Operario, s.$c_seg_pt AS Puesto, r.$c_ref_req AS HorasDefinidas,
-            (SELECT SUM(ISNULL(h.$c_hor_h, 0)) FROM $t_hor h WHERE h.$c_hor_op = s.$c_seg_op AND h.$c_hor_pt = s.$c_seg_pt) AS HorasRealizadas
-        FROM $t_seg s
-        LEFT JOIN $t_ref r ON s.$c_seg_pt = r.$c_ref_pt
-        LEFT JOIN $t_ope m ON s.$c_seg_op = m.$c_ope_nom
-        WHERE (m.$c_ope_baj = 'NO' OR m.$c_ope_baj IS NULL OR m.$c_ope_baj = '0')
-          AND (s.$c_seg_val IS NULL OR s.$c_seg_val <> 'OK')
-        GROUP BY s.$c_seg_op, s.$c_seg_pt, r.$c_ref_req
-        HAVING (ISNULL(r.$c_ref_req, 0) - ISNULL((SELECT SUM(h.$c_hor_h) FROM $t_hor h WHERE h.$c_hor_op = s.$c_seg_op AND h.$c_hor_pt = s.$c_seg_pt), 0)) > 0";
+            UNION ALL
+
+            -- 3. Desde Seguimiento (seguimiento_formacion.php)
+            -- Intentamos obtener el nombre si solo hay ID
+            SELECT
+                LTRIM(RTRIM(COALESCE(o.NombreOperario, CAST(s.ID_Operario AS VARCHAR), CAST(s.Operario AS VARCHAR)))) AS Operario,
+                LTRIM(RTRIM(COALESCE(s.Operacion, s.Puesto))) AS Puesto,
+                ISNULL(s.HorasSesion, 0) AS Horas
+            FROM [dbo].[pol_FormacionSeguimiento] s
+            LEFT JOIN [dbo].[pol_Operarios] o ON CAST(s.ID_Operario AS VARCHAR) = CAST(o.Operario AS VARCHAR)
+        ) AS base
+        LEFT JOIN [dbo].[pol_MatrizDefinicion] def ON LTRIM(RTRIM(base.Puesto)) = LTRIM(RTRIM(def.Operacion))
+        WHERE ISNULL(def.HorasRequeridasFormacion, 0) > 0
+        GROUP BY base.Operario, base.Puesto
+        HAVING (MAX(ISNULL(def.HorasRequeridasFormacion, 0)) - SUM(ISNULL(base.Horas, 0))) > 0
+        ORDER BY Operario ASC";
 
 $res = sqlsrv_query($conn, $sql);
-$datos = []; $total_h_pendientes = 0; $total_puestos_abiertos = 0;
-if ($res) {
-    while ($row = sqlsrv_fetch_array($res, SQLSRV_FETCH_ASSOC)) {
-        $op = $row['Operario']; $req = (float)$row['HorasDefinidas']; $real = (float)$row['HorasRealizadas']; $pend = $req - $real;
-        if ($pend > 0) {
-            $pct = ($req > 0) ? ($real / $req) * 100 : 0;
-            $datos[$op][] = ['puesto' => $row['Puesto'], 'req' => $req, 'real' => $real, 'pend' => $pend, 'pct' => $pct];
-            $total_h_pendientes += $pend; $total_puestos_abiertos++;
-        }
+
+if ($res === false) {
+    die("<pre>" . print_r(sqlsrv_errors(), true) . "</pre>");
+}
+
+$datos = [];
+$total_h_pendientes = 0;
+$total_puestos_abiertos = 0;
+
+while ($row = sqlsrv_fetch_array($res, SQLSRV_FETCH_ASSOC)) {
+    $op = $row['Operario'];
+    $req = (float)$row['HorasDefinidas'];
+    $real = (float)$row['HorasRealizadas'];
+    $pend = $req - $real;
+
+    if ($pend > 0) {
+        $pct = ($req > 0) ? ($real / $req) * 100 : 0;
+        $datos[$op][] = [
+            'puesto' => $row['Puesto'],
+            'req' => $req,
+            'real' => $real,
+            'pend' => $pend,
+            'pct' => $pct
+        ];
+        $total_h_pendientes += $pend;
+        $total_puestos_abiertos++;
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <?php include 'header_meta.php'; ?>
-    <title>KH - Reporte de Formaciones</title>
+    <title>Informe de Formaciones KH</title>
     <style>
-        .op-card { border-bottom: 8px solid #f0f2f5; }
-        .op-name { background: #f8f9fa; padding: 12px 20px; font-weight: bold; color: #8c181a; border-left: 5px solid #b18e3a; }
-        .prog-bg { background: #eee; height: 8px; width: 80px; border-radius: 4px; display: inline-block; overflow: hidden; }
-        .prog-fill { background: #b18e3a; height: 100%; }
-        .footer-stats { background: #222; color: white; padding: 25px; display: flex; justify-content: space-around; text-align: center; flex-wrap: wrap; gap: 20px; }
-        .stat-item b { display: block; font-size: 1.8rem; color: #b18e3a; }
+        :root { --kh-red: #8c181a; --kh-gold: #b18e3a; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 950px; margin: auto; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: var(--kh-red); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .op-header { background: #fdfdfd; padding: 12px 20px; font-weight: bold; color: var(--kh-red); border-left: 5px solid var(--kh-gold); border-bottom: 1px solid #eee; font-size: 1.1em; }
+        table { width: 100%; border-collapse: collapse; }
+        th { font-size: 11px; color: #777; text-transform: uppercase; padding: 12px; background: #fafafa; letter-spacing: 1px; }
+        td { padding: 14px; text-align: center; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .prog-bg { background: #eee; height: 12px; width: 120px; border-radius: 6px; display: inline-block; overflow: hidden; vertical-align: middle; }
+        .prog-fill { background: var(--kh-gold); height: 100%; }
 
-        @media print {
-            .no-print { display: none !important; }
-            body { padding: 0; background: white; }
-            .container { box-shadow: none; border: none; max-width: 100%; }
-            .op-name { background: #eee !important; -webkit-print-color-adjust: exact; }
-            .prog-bg { border: 1px solid #ccc; }
-            .prog-fill { background: #b18e3a !important; -webkit-print-color-adjust: exact; }
-            .footer-stats { background: #eee !important; color: black !important; }
-            .stat-item b { color: #8c181a !important; }
-        }
+        /* Estilos del Pie de Página */
+        .footer-stats { background: #2c3e50; color: white; padding: 25px; display: flex; justify-content: space-around; text-align: center; flex-wrap: wrap; gap: 15px; }
+        .stat-item b { display: block; font-size: 1.8rem; color: var(--kh-gold); margin-bottom: 5px; }
+        .stat-item span { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #bdc3c7; }
+
+        .btn { background: transparent; color: white; border: 1px solid white; text-decoration: none; padding: 8px 18px; border-radius: 4px; font-size: 13px; transition: 0.3s; display: inline-block; }
+        .btn:hover { background: white; color: var(--kh-red); }
+        @media print { .no-print { display: none !important; } .container { box-shadow: none; border: 1px solid #eee; } }
     </style>
 </head>
-<body style="padding: 20px 15px;">
-
-<div class="header-kh no-print">
-    <div style="display:flex; align-items:center; gap:15px;">
-        <a href="index.php" style="color:white; text-decoration:none; font-size:24px;">🏠</a>
-        <h2 style="margin:0;">Formaciones Abiertas</h2>
+<body>
+<div class="container">
+    <div class="header">
+        <h2 style="margin:0;">FORMACIONES EN CURSO</h2>
+        <div class="no-print">
+            <a href="index.php" class="btn">VOLVER AL MENÚ</a>
+            <button onclick="window.print()" class="btn" style="margin-left:10px; cursor:pointer;">IMPRIMIR</button>
+        </div>
     </div>
-    <div style="display: flex; gap: 10px;">
-        <button onclick="window.print();" class="btn btn-accent">📄 IMPRIMIR PDF</button>
-    </div>
-</div>
 
-<div class="container" style="background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px;">
     <?php if (empty($datos)): ?>
-        <p style="padding:60px; text-align:center; color:#999;">No hay formaciones pendientes.</p>
+        <div style="padding:100px 20px; text-align:center;">
+            <h3 style="color:#999;">No hay formaciones pendientes</h3>
+            <p style="color:#bbb;">Todos los operarios han completado sus horas requeridas.</p>
+        </div>
     <?php else: ?>
-        <?php foreach ($datos as $op => $filas): ?>
-            <div class="op-card">
-                <div class="op-name">👤 <?php echo limpiar($op); ?></div>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="text-align:left; padding-left:20px;">Puesto / Operación</th>
-                                <th>Objetivo</th>
-                                <th>Realizado</th>
-                                <th>Pendiente</th>
-                                <th>Progreso</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($filas as $f): ?>
-                            <tr>
-                                <td style="text-align:left; padding-left:20px;"><b><?php echo limpiar($f['puesto']); ?></b></td>
-                                <td style="text-align:center;"><?php echo number_format($f['req'], 1); ?> h</td>
-                                <td style="text-align:center; color:green;"><?php echo number_format($f['real'], 1); ?> h</td>
-                                <td style="text-align:center; color:#8c181a; font-weight:bold;"><?php echo number_format($f['pend'], 1); ?> h</td>
-                                <td style="text-align:center;">
-                                    <div class="prog-bg"><div class="prog-fill" style="width:<?php echo $f['pct']; ?>%"></div></div>
-                                    <small style="margin-left:5px;"><?php echo round($f['pct']); ?>%</small>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+        <?php foreach ($datos as $operario => $puestos): ?>
+            <div class="op-header">👤 <?=limpiar($operario)?></div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th align="left" style="padding-left:20px;">Puesto / Operación</th>
+                            <th>Objetivo</th>
+                            <th>Realizado</th>
+                            <th>Faltan</th>
+                            <th>Progreso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($puestos as $p): ?>
+                        <tr>
+                            <td align="left" style="padding-left:20px;"><b><?=limpiar($p['puesto'])?></b></td>
+                            <td><?=number_format($p['req'], 1)?> h</td>
+                            <td style="color:#27ae60; font-weight:bold;"><?=number_format($p['real'], 1)?> h</td>
+                            <td style="color:var(--kh-red); font-weight:bold;"><?=number_format($p['pend'], 1)?> h</td>
+                            <td>
+                                <div class="prog-bg"><div class="prog-fill" style="width:<?=$p['pct']?>%"></div></div>
+                                <span style="font-size:12px; margin-left:8px; font-weight:bold;"><?=round($p['pct'])?>%</span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         <?php endforeach; ?>
+
+        <div class="footer-stats">
+            <div class="stat-item">
+                <b><?=count($datos)?></b>
+                <span>Operarios con formación</span>
+            </div>
+            <div class="stat-item">
+                <b><?=$total_puestos_abiertos?></b>
+                <span>Puestos abiertos</span>
+            </div>
+            <div class="stat-item">
+                <b><?=number_format($total_h_pendientes, 1)?></b>
+                <span>Total horas pendientes</span>
+            </div>
+        </div>
     <?php endif; ?>
-
-    <div class="footer-stats">
-        <div class="stat-item">
-            <b><?php echo count($datos); ?></b>
-            <span>Operarios</span>
-        </div>
-        <div class="stat-item">
-            <b><?php echo $total_puestos_abiertos; ?></b>
-            <span>Puestos Abiertos</span>
-        </div>
-        <div class="stat-item">
-            <b><?php echo number_format($total_h_pendientes, 1); ?></b>
-            <span>Horas Pendientes</span>
-        </div>
-    </div>
 </div>
-
 </body>
 </html>
